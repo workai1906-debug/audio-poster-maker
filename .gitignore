@@ -6,3 +6,6 @@
 
 # Keep this gitignore
 !.gitignore
+
+# Local Netlify folder
+.netlify

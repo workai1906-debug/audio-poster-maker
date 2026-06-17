@@ -282,6 +282,14 @@
                         <label>Размер: <span class="slider-value" id="p1ScaleValue">100</span>%</label>
                         <input type="range" id="p1Scale" min="30" max="200" value="100" step="5">
                     </div>
+                    <div class="slider-group">
+                        <label>Позиция X: <span class="slider-value" id="p1XValue">0</span>px</label>
+                        <input type="range" id="p1XOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>Позиция Y: <span class="slider-value" id="p1YValue">0</span>px</label>
+                        <input type="range" id="p1YOffset" min="-500" max="500" value="0" step="10">
+                    </div>
                     <button class="secondary" onclick="clearProduct(1)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
 
                     <label class="text-label">Продукт 2:</label>
@@ -296,6 +304,14 @@
                         <label>Размер: <span class="slider-value" id="p2ScaleValue">100</span>%</label>
                         <input type="range" id="p2Scale" min="30" max="200" value="100" step="5">
                     </div>
+                    <div class="slider-group">
+                        <label>Позиция X: <span class="slider-value" id="p2XValue">0</span>px</label>
+                        <input type="range" id="p2XOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>Позиция Y: <span class="slider-value" id="p2YValue">0</span>px</label>
+                        <input type="range" id="p2YOffset" min="-500" max="500" value="0" step="10">
+                    </div>
                     <button class="secondary" onclick="clearProduct(2)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
 
                     <label class="text-label">Продукт 3:</label>
@@ -309,6 +325,14 @@
                     <div class="slider-group" style="margin-top: 8px;">
                         <label>Размер: <span class="slider-value" id="p3ScaleValue">100</span>%</label>
                         <input type="range" id="p3Scale" min="30" max="200" value="100" step="5">
+                    </div>
+                    <div class="slider-group">
+                        <label>Позиция X: <span class="slider-value" id="p3XValue">0</span>px</label>
+                        <input type="range" id="p3XOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>Позиция Y: <span class="slider-value" id="p3YValue">0</span>px</label>
+                        <input type="range" id="p3YOffset" min="-500" max="500" value="0" step="10">
                     </div>
                     <button class="secondary" onclick="clearProduct(3)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
                 </div>
@@ -402,22 +426,6 @@ Peak 200W</textarea>
                     <button class="secondary" onclick="resetTextPosition()" style="margin-top: 10px;">↺ Сбросить позицию</button>
                 </div>
 
-                <div class="control-group">
-                    <h3>🖼️ Положение картинок</h3>
-                    <div class="slider-group">
-                        <label>По вертикали: <span class="slider-value" id="imagesYValue">0</span>px</label>
-                        <input type="range" id="imagesYOffset" min="-500" max="500" value="0" step="10">
-                    </div>
-                    <div class="slider-group">
-                        <label>По горизонтали: <span class="slider-value" id="imagesXValue">0</span>px</label>
-                        <input type="range" id="imagesXOffset" min="-300" max="300" value="0" step="10">
-                    </div>
-                    <div class="slider-group">
-                        <label>Размер картинок: <span class="slider-value" id="imageScaleValue">100</span>%</label>
-                        <input type="range" id="imageScale" min="50" max="150" value="100" step="5">
-                    </div>
-                    <button class="secondary" onclick="resetImagesPosition()" style="margin-top: 10px;">↺ Сбросить позицию</button>
-                </div>
 
                 <div class="control-group">
                     <h3>📝 Примечание (низ плаката)</h3>
@@ -533,18 +541,31 @@ Peak 200W</textarea>
             updateCanvas();
         });
 
-        document.getElementById('imagesYOffset').addEventListener('input', (e) => {
-            document.getElementById('imagesYValue').textContent = e.target.value;
+        // Индивидуальные позиции для каждого продукта
+        document.getElementById('p1XOffset').addEventListener('input', (e) => {
+            document.getElementById('p1XValue').textContent = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p1YOffset').addEventListener('input', (e) => {
+            document.getElementById('p1YValue').textContent = e.target.value;
             updateCanvas();
         });
 
-        document.getElementById('imagesXOffset').addEventListener('input', (e) => {
-            document.getElementById('imagesXValue').textContent = e.target.value;
+        document.getElementById('p2XOffset').addEventListener('input', (e) => {
+            document.getElementById('p2XValue').textContent = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p2YOffset').addEventListener('input', (e) => {
+            document.getElementById('p2YValue').textContent = e.target.value;
             updateCanvas();
         });
 
-        document.getElementById('imageScale').addEventListener('input', (e) => {
-            document.getElementById('imageScaleValue').textContent = e.target.value;
+        document.getElementById('p3XOffset').addEventListener('input', (e) => {
+            document.getElementById('p3XValue').textContent = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p3YOffset').addEventListener('input', (e) => {
+            document.getElementById('p3YValue').textContent = e.target.value;
             updateCanvas();
         });
 
@@ -627,15 +648,6 @@ Peak 200W</textarea>
             updateCanvas();
         }
 
-        function resetImagesPosition() {
-            document.getElementById('imagesYOffset').value = 0;
-            document.getElementById('imagesXOffset').value = 0;
-            document.getElementById('imageScale').value = 100;
-            document.getElementById('imagesYValue').textContent = '0';
-            document.getElementById('imagesXValue').textContent = '0';
-            document.getElementById('imageScaleValue').textContent = '100';
-            updateCanvas();
-        }
 
         function clearBackground() {
             images.background = null;
@@ -655,20 +667,21 @@ Peak 200W</textarea>
             document.getElementById(`p${num}Label`).textContent = 'Выберите фото';
             document.getElementById(`p${num}Preview`).classList.remove('visible');
 
-            // Сбрасываем масштаб
+            // Сбрасываем масштаб и позиции
             document.getElementById(`p${num}Scale`).value = 100;
             document.getElementById(`p${num}ScaleValue`).textContent = '100';
+            document.getElementById(`p${num}XOffset`).value = 0;
+            document.getElementById(`p${num}YOffset`).value = 0;
+            document.getElementById(`p${num}XValue`).textContent = '0';
+            document.getElementById(`p${num}YValue`).textContent = '0';
 
             updateCanvas();
         }
 
         function resetAllSettings() {
-            // Сброс позиций
+            // Сброс позиций текстов
             document.getElementById('textYOffset').value = 0;
             document.getElementById('textXOffset').value = 0;
-            document.getElementById('imagesYOffset').value = 0;
-            document.getElementById('imagesXOffset').value = 0;
-            document.getElementById('imageScale').value = 100;
 
             // Сброс размеров
             document.getElementById('fontSize').value = 24;
@@ -686,9 +699,6 @@ Peak 200W</textarea>
             // Обновление отображаемых значений
             document.getElementById('textYValue').textContent = '0';
             document.getElementById('textXValue').textContent = '0';
-            document.getElementById('imagesYValue').textContent = '0';
-            document.getElementById('imagesXValue').textContent = '0';
-            document.getElementById('imageScaleValue').textContent = '100';
             document.getElementById('fontSizeValue').textContent = '24';
             document.getElementById('headerSizeValue').textContent = '48';
             document.getElementById('strokeValue').textContent = '3';
@@ -720,13 +730,27 @@ Peak 200W</textarea>
             document.getElementById('footerYValue').textContent = '0';
             document.getElementById('footerXValue').textContent = '0';
 
-            // Сброс индивидуальных масштабов продуктов
+            // Сброс индивидуальных масштабов и позиций продуктов
             document.getElementById('p1Scale').value = 100;
             document.getElementById('p2Scale').value = 100;
             document.getElementById('p3Scale').value = 100;
             document.getElementById('p1ScaleValue').textContent = '100';
             document.getElementById('p2ScaleValue').textContent = '100';
             document.getElementById('p3ScaleValue').textContent = '100';
+
+            document.getElementById('p1XOffset').value = 0;
+            document.getElementById('p1YOffset').value = 0;
+            document.getElementById('p2XOffset').value = 0;
+            document.getElementById('p2YOffset').value = 0;
+            document.getElementById('p3XOffset').value = 0;
+            document.getElementById('p3YOffset').value = 0;
+
+            document.getElementById('p1XValue').textContent = '0';
+            document.getElementById('p1YValue').textContent = '0';
+            document.getElementById('p2XValue').textContent = '0';
+            document.getElementById('p2YValue').textContent = '0';
+            document.getElementById('p3XValue').textContent = '0';
+            document.getElementById('p3YValue').textContent = '0';
 
             updateCanvas();
         }
@@ -744,38 +768,67 @@ Peak 200W</textarea>
                 ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
             }
 
-            // Получаем смещения для картинок
-            const imagesYOffset = parseInt(document.getElementById('imagesYOffset').value);
-            const imagesXOffset = parseInt(document.getElementById('imagesXOffset').value);
-            const imageScale = parseInt(document.getElementById('imageScale').value) / 100;
-
-            // Рисуем продукты (компактно, 3 штуки в ряд)
-            const padding = canvas.width * 0.03; // Уменьшенный отступ
+            // Базовые размеры и позиции (как основа для расчётов)
+            const padding = canvas.width * 0.03;
             const totalWidth = canvas.width - (padding * 2);
-            const productWidth = (totalWidth / 3.3) * imageScale; // Применяем масштаб
-            const productHeight = (canvas.height * 0.4) * imageScale; // Применяем масштаб
-            const startY = canvas.height * 0.1 + imagesYOffset; // Добавляем смещение по Y
-            const spacing = (totalWidth - productWidth * 3) / 2;
+            const baseProductWidth = totalWidth / 3.3;
+            const baseProductHeight = canvas.height * 0.4;
+            const baseStartY = canvas.height * 0.1;
+            const spacing = (totalWidth - baseProductWidth * 3) / 2;
 
-            // Позиции по X с учетом смещения
-            const x1 = padding + imagesXOffset;
-            const x2 = padding + productWidth + spacing + imagesXOffset;
-            const x3 = padding + productWidth * 2 + spacing * 2 + imagesXOffset;
+            // Базовые позиции по X (без учета индивидуальных смещений)
+            const baseX1 = padding;
+            const baseX2 = padding + baseProductWidth + spacing;
+            const baseX3 = padding + baseProductWidth * 2 + spacing * 2;
 
-            // Получаем индивидуальные масштабы для каждого продукта
+            // Получаем индивидуальные параметры для каждого продукта
             const p1Scale = parseInt(document.getElementById('p1Scale').value) / 100;
             const p2Scale = parseInt(document.getElementById('p2Scale').value) / 100;
             const p3Scale = parseInt(document.getElementById('p3Scale').value) / 100;
 
+            const p1XOffset = parseInt(document.getElementById('p1XOffset').value);
+            const p1YOffset = parseInt(document.getElementById('p1YOffset').value);
+            const p2XOffset = parseInt(document.getElementById('p2XOffset').value);
+            const p2YOffset = parseInt(document.getElementById('p2YOffset').value);
+            const p3XOffset = parseInt(document.getElementById('p3XOffset').value);
+            const p3YOffset = parseInt(document.getElementById('p3YOffset').value);
+
+            // Рисуем каждый продукт с индивидуальными параметрами
             if (images.product1) {
-                drawProductImage(images.product1, x1, startY, productWidth * p1Scale, productHeight * p1Scale);
+                drawProductImage(
+                    images.product1,
+                    baseX1 + p1XOffset,
+                    baseStartY + p1YOffset,
+                    baseProductWidth * p1Scale,
+                    baseProductHeight * p1Scale
+                );
             }
             if (images.product2) {
-                drawProductImage(images.product2, x2, startY, productWidth * p2Scale, productHeight * p2Scale);
+                drawProductImage(
+                    images.product2,
+                    baseX2 + p2XOffset,
+                    baseStartY + p2YOffset,
+                    baseProductWidth * p2Scale,
+                    baseProductHeight * p2Scale
+                );
             }
             if (images.product3) {
-                drawProductImage(images.product3, x3, startY, productWidth * p3Scale, productHeight * p3Scale);
+                drawProductImage(
+                    images.product3,
+                    baseX3 + p3XOffset,
+                    baseStartY + p3YOffset,
+                    baseProductWidth * p3Scale,
+                    baseProductHeight * p3Scale
+                );
             }
+
+            // Сохраняем базовые значения для использования в функциях отрисовки текста
+            const x1 = baseX1;
+            const x2 = baseX2;
+            const x3 = baseX3;
+            const productWidth = baseProductWidth;
+            const startY = baseStartY;
+            const productHeight = baseProductHeight;
 
             // Рисуем заголовок
             const headerText = document.getElementById('headerText').value;

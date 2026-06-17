@@ -1,0 +1,8 @@
+# Ignore subdirectories
+*/
+
+# Keep only HTML files in root
+!*.html
+
+# Keep this gitignore
+!.gitignore

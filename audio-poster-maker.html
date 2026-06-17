@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор плакатов акустики</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #4CAF50;
+        }
+
+        .workspace {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        .controls {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            height: fit-content;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group h3 {
+            margin-bottom: 10px;
+            color: #4CAF50;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .format-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .format-buttons {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+        }
+
+        .format-btn {
+            padding: 10px;
+            background: #3a3a3a;
+            border: 2px solid #555;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .format-btn:hover {
+            background: #4a4a4a;
+            border-color: #4CAF50;
+        }
+
+        .format-btn.active {
+            background: #2d4a2d;
+            border-color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: #3a3a3a;
+            border: 2px dashed #555;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+
+        .file-input-label:hover {
+            background: #4a4a4a;
+            border-color: #4CAF50;
+        }
+
+        .file-input-label.loaded {
+            border-color: #4CAF50;
+            background: #2d4a2d;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px;
+            background: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 50px;
+            margin-bottom: 8px;
+        }
+
+        .color-input {
+            width: 100%;
+            height: 40px;
+            background: #3a3a3a;
+            border: 1px solid #555;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .slider-group {
+            margin-bottom: 12px;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .slider-group input[type="range"] {
+            width: 100%;
+        }
+
+        .slider-value {
+            float: right;
+            color: #4CAF50;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-bottom: 8px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button.secondary {
+            background: #555;
+        }
+
+        button.secondary:hover {
+            background: #666;
+        }
+
+        .canvas-wrapper {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #canvas {
+            max-width: 100%;
+            max-height: 85vh;
+            height: auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .preview-thumb {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .preview-thumb.visible {
+            display: block;
+        }
+
+        .text-label {
+            font-size: 11px;
+            color: #aaa;
+            display: block;
+            margin: 8px 0 4px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 Генератор плакатов для комплектов акустики</h1>
+
+        <div class="workspace">
+            <div class="controls">
+                <div class="control-group">
+                    <h3>📐 Формат плаката</h3>
+                    <div class="format-buttons">
+                        <button class="format-btn" onclick="setFormat(1080, 1920)">9:16<br>(Stories)</button>
+                        <button class="format-btn" onclick="setFormat(1920, 1080)">16:9<br>(YouTube)</button>
+                        <button class="format-btn active" onclick="setFormat(1080, 1080)">1:1<br>(Квадрат)</button>
+                        <button class="format-btn" onclick="setFormat(1080, 1350)">4:5<br>(Instagram)</button>
+                        <button class="format-btn" onclick="setFormat(2480, 3508)">A4<br>(Портрет)</button>
+                        <button class="format-btn" onclick="setFormat(3508, 2480)">A4<br>(Альбом)</button>
+                    </div>
+                    <div style="font-size: 11px; color: #888; text-align: center;">
+                        <span id="currentSize">1080 × 1080</span>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🖼️ Фон плаката</h3>
+                    <label class="text-label">Цвет фона:</label>
+                    <input type="color" id="backgroundColor" value="#000000" class="color-input" style="margin-bottom: 10px;">
+
+                    <label class="text-label">Или загрузите изображение:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="backgroundInput" accept="image/*">
+                        <label class="file-input-label" for="backgroundInput" id="bgLabel">
+                            Выберите фон
+                        </label>
+                    </div>
+                    <img id="bgPreview" class="preview-thumb">
+                    <button class="secondary" onclick="clearBackground()" style="margin-top: 8px; font-size: 12px; padding: 8px;">Удалить фоновое фото</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎵 Изображения акустики</h3>
+
+                    <label class="text-label">Продукт 1:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="product1Input" accept="image/*">
+                        <label class="file-input-label" for="product1Input" id="p1Label">
+                            Выберите фото
+                        </label>
+                    </div>
+                    <img id="p1Preview" class="preview-thumb">
+                    <div class="slider-group" style="margin-top: 8px;">
+                        <label>Размер: <span class="slider-value" id="p1ScaleValue">100</span>%</label>
+                        <input type="range" id="p1Scale" min="30" max="200" value="100" step="5">
+                    </div>
+                    <button class="secondary" onclick="clearProduct(1)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
+
+                    <label class="text-label">Продукт 2:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="product2Input" accept="image/*">
+                        <label class="file-input-label" for="product2Input" id="p2Label">
+                            Выберите фото
+                        </label>
+                    </div>
+                    <img id="p2Preview" class="preview-thumb">
+                    <div class="slider-group" style="margin-top: 8px;">
+                        <label>Размер: <span class="slider-value" id="p2ScaleValue">100</span>%</label>
+                        <input type="range" id="p2Scale" min="30" max="200" value="100" step="5">
+                    </div>
+                    <button class="secondary" onclick="clearProduct(2)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
+
+                    <label class="text-label">Продукт 3:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="product3Input" accept="image/*">
+                        <label class="file-input-label" for="product3Input" id="p3Label">
+                            Выберите фото
+                        </label>
+                    </div>
+                    <img id="p3Preview" class="preview-thumb">
+                    <div class="slider-group" style="margin-top: 8px;">
+                        <label>Размер: <span class="slider-value" id="p3ScaleValue">100</span>%</label>
+                        <input type="range" id="p3Scale" min="30" max="200" value="100" step="5">
+                    </div>
+                    <button class="secondary" onclick="clearProduct(3)" style="font-size: 12px; padding: 6px; margin-bottom: 15px;">✕ Удалить</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>📋 Заголовок плаката</h3>
+                    <textarea id="headerText" placeholder="Введите заголовок..." style="min-height: 40px;">PREMIUM AUDIO KIT</textarea>
+
+                    <div class="slider-group" style="margin-top: 10px;">
+                        <label>Размер заголовка: <span class="slider-value" id="headerSizeValue">48</span>px</label>
+                        <input type="range" id="headerSize" min="20" max="100" value="48" step="2">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Позиция по вертикали: <span class="slider-value" id="headerYValue">0</span>px</label>
+                        <input type="range" id="headerYOffset" min="-300" max="300" value="0" step="10">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>✏️ Тексты под каждым фото</h3>
+                    <label class="text-label">Продукт 1:</label>
+                    <textarea id="text1" placeholder="Описание...">Сабвуфер 12"
+300W RMS</textarea>
+
+                    <label class="text-label">Продукт 2:</label>
+                    <textarea id="text2" placeholder="Описание...">Усилитель 4ch
+4x100W</textarea>
+
+                    <label class="text-label">Продукт 3:</label>
+                    <textarea id="text3" placeholder="Описание...">Акустика 6.5"
+Peak 200W</textarea>
+                </div>
+
+                <div class="control-group">
+                    <h3>💰 Цены для каждого продукта</h3>
+                    <label class="text-label">Цена 1:</label>
+                    <textarea id="price1" placeholder="Цена..." style="min-height: 35px;">$299</textarea>
+
+                    <label class="text-label">Цена 2:</label>
+                    <textarea id="price2" placeholder="Цена..." style="min-height: 35px;">$499</textarea>
+
+                    <label class="text-label">Цена 3:</label>
+                    <textarea id="price3" placeholder="Цена..." style="min-height: 35px;">$199</textarea>
+
+                    <div class="slider-group" style="margin-top: 12px;">
+                        <label>Размер цен: <span class="slider-value" id="priceSizeValue">32</span>px</label>
+                        <input type="range" id="priceSize" min="16" max="80" value="32" step="2">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Позиция по вертикали: <span class="slider-value" id="priceYValue">0</span>px</label>
+                        <input type="range" id="priceYOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Позиция по горизонтали: <span class="slider-value" id="priceXValue">0</span>px</label>
+                        <input type="range" id="priceXOffset" min="-300" max="300" value="0" step="10">
+                    </div>
+
+                    <button class="secondary" onclick="resetPricePosition()" style="margin-top: 10px;">↺ Сбросить позицию цен</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎨 Настройки текста</h3>
+                    <div class="slider-group">
+                        <label>Размер шрифта: <span class="slider-value" id="fontSizeValue">24</span>px</label>
+                        <input type="range" id="fontSize" min="12" max="60" value="24" step="2">
+                    </div>
+                    <label class="text-label">Цвет текста:</label>
+                    <input type="color" id="textColor" value="#ffffff" class="color-input">
+
+                    <div class="slider-group" style="margin-top: 15px;">
+                        <label>Обводка текста: <span class="slider-value" id="strokeValue">3</span>px</label>
+                        <input type="range" id="strokeWidth" min="0" max="10" value="3" step="1">
+                    </div>
+                    <label class="text-label">Цвет обводки:</label>
+                    <input type="color" id="strokeColor" value="#000000" class="color-input">
+                </div>
+
+                <div class="control-group">
+                    <h3>📍 Положение текста</h3>
+                    <div class="slider-group">
+                        <label>По вертикали: <span class="slider-value" id="textYValue">0</span>px</label>
+                        <input type="range" id="textYOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>По горизонтали: <span class="slider-value" id="textXValue">0</span>px</label>
+                        <input type="range" id="textXOffset" min="-300" max="300" value="0" step="10">
+                    </div>
+                    <button class="secondary" onclick="resetTextPosition()" style="margin-top: 10px;">↺ Сбросить позицию</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>🖼️ Положение картинок</h3>
+                    <div class="slider-group">
+                        <label>По вертикали: <span class="slider-value" id="imagesYValue">0</span>px</label>
+                        <input type="range" id="imagesYOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>По горизонтали: <span class="slider-value" id="imagesXValue">0</span>px</label>
+                        <input type="range" id="imagesXOffset" min="-300" max="300" value="0" step="10">
+                    </div>
+                    <div class="slider-group">
+                        <label>Размер картинок: <span class="slider-value" id="imageScaleValue">100</span>%</label>
+                        <input type="range" id="imageScale" min="50" max="150" value="100" step="5">
+                    </div>
+                    <button class="secondary" onclick="resetImagesPosition()" style="margin-top: 10px;">↺ Сбросить позицию</button>
+                </div>
+
+                <div class="control-group">
+                    <h3>📝 Примечание (низ плаката)</h3>
+                    <textarea id="footerText" placeholder="Например: Акция действует до 31.12.2024" style="min-height: 40px;">*Гарантия 2 года. Доставка бесплатно.</textarea>
+
+                    <div class="slider-group" style="margin-top: 12px;">
+                        <label>Размер текста: <span class="slider-value" id="footerSizeValue">18</span>px</label>
+                        <input type="range" id="footerSize" min="12" max="48" value="18" step="2">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Позиция по вертикали: <span class="slider-value" id="footerYValue">0</span>px</label>
+                        <input type="range" id="footerYOffset" min="-500" max="500" value="0" step="10">
+                    </div>
+
+                    <div class="slider-group">
+                        <label>Позиция по горизонтали: <span class="slider-value" id="footerXValue">0</span>px</label>
+                        <input type="range" id="footerXOffset" min="-300" max="300" value="0" step="10">
+                    </div>
+
+                    <button class="secondary" onclick="resetFooterPosition()" style="margin-top: 10px;">↺ Сбросить позицию примечания</button>
+                </div>
+
+                <button onclick="updateCanvas()">🔄 Обновить плакат</button>
+                <button onclick="downloadPoster()">💾 Скачать плакат</button>
+                <button class="secondary" onclick="resetAllSettings()">↺ Сбросить все настройки</button>
+                <button class="secondary" onclick="clearAll()">🗑️ Очистить всё (включая фото)</button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="canvas" width="1080" height="1080"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let images = {
+            background: null,
+            product1: null,
+            product2: null,
+            product3: null
+        };
+
+        function setFormat(width, height) {
+            canvas.width = width;
+            canvas.height = height;
+            document.getElementById('currentSize').textContent = `${width} × ${height}`;
+
+            // Обновляем активную кнопку
+            document.querySelectorAll('.format-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            updateCanvas();
+        }
+
+        // Обработчики загрузки изображений
+        function setupImageInput(inputId, key, labelId, previewId) {
+            const input = document.getElementById(inputId);
+            const label = document.getElementById(labelId);
+            const preview = document.getElementById(previewId);
+
+            input.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            images[key] = img;
+                            label.classList.add('loaded');
+                            label.textContent = file.name;
+                            preview.src = event.target.result;
+                            preview.classList.add('visible');
+                            updateCanvas();
+                        };
+                        img.src = event.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        setupImageInput('backgroundInput', 'background', 'bgLabel', 'bgPreview');
+        setupImageInput('product1Input', 'product1', 'p1Label', 'p1Preview');
+        setupImageInput('product2Input', 'product2', 'p2Label', 'p2Preview');
+        setupImageInput('product3Input', 'product3', 'p3Label', 'p3Preview');
+
+        // Обновление значений слайдеров
+        document.getElementById('fontSize').addEventListener('input', (e) => {
+            document.getElementById('fontSizeValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('strokeWidth').addEventListener('input', (e) => {
+            document.getElementById('strokeValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('textColor').addEventListener('change', updateCanvas);
+        document.getElementById('strokeColor').addEventListener('change', updateCanvas);
+        document.getElementById('backgroundColor').addEventListener('change', updateCanvas);
+
+        document.getElementById('textYOffset').addEventListener('input', (e) => {
+            document.getElementById('textYValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('textXOffset').addEventListener('input', (e) => {
+            document.getElementById('textXValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('imagesYOffset').addEventListener('input', (e) => {
+            document.getElementById('imagesYValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('imagesXOffset').addEventListener('input', (e) => {
+            document.getElementById('imagesXValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('imageScale').addEventListener('input', (e) => {
+            document.getElementById('imageScaleValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('headerSize').addEventListener('input', (e) => {
+            document.getElementById('headerSizeValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('headerYOffset').addEventListener('input', (e) => {
+            document.getElementById('headerYValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('p1Scale').addEventListener('input', (e) => {
+            document.getElementById('p1ScaleValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('p2Scale').addEventListener('input', (e) => {
+            document.getElementById('p2ScaleValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('p3Scale').addEventListener('input', (e) => {
+            document.getElementById('p3ScaleValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('priceSize').addEventListener('input', (e) => {
+            document.getElementById('priceSizeValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('priceYOffset').addEventListener('input', (e) => {
+            document.getElementById('priceYValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('priceXOffset').addEventListener('input', (e) => {
+            document.getElementById('priceXValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        function resetPricePosition() {
+            document.getElementById('priceYOffset').value = 0;
+            document.getElementById('priceXOffset').value = 0;
+            document.getElementById('priceYValue').textContent = '0';
+            document.getElementById('priceXValue').textContent = '0';
+            updateCanvas();
+        }
+
+        document.getElementById('footerSize').addEventListener('input', (e) => {
+            document.getElementById('footerSizeValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('footerYOffset').addEventListener('input', (e) => {
+            document.getElementById('footerYValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        document.getElementById('footerXOffset').addEventListener('input', (e) => {
+            document.getElementById('footerXValue').textContent = e.target.value;
+            updateCanvas();
+        });
+
+        function resetFooterPosition() {
+            document.getElementById('footerYOffset').value = 0;
+            document.getElementById('footerXOffset').value = 0;
+            document.getElementById('footerYValue').textContent = '0';
+            document.getElementById('footerXValue').textContent = '0';
+            updateCanvas();
+        }
+
+        function resetTextPosition() {
+            document.getElementById('textYOffset').value = 0;
+            document.getElementById('textXOffset').value = 0;
+            document.getElementById('textYValue').textContent = '0';
+            document.getElementById('textXValue').textContent = '0';
+            updateCanvas();
+        }
+
+        function resetImagesPosition() {
+            document.getElementById('imagesYOffset').value = 0;
+            document.getElementById('imagesXOffset').value = 0;
+            document.getElementById('imageScale').value = 100;
+            document.getElementById('imagesYValue').textContent = '0';
+            document.getElementById('imagesXValue').textContent = '0';
+            document.getElementById('imageScaleValue').textContent = '100';
+            updateCanvas();
+        }
+
+        function clearBackground() {
+            images.background = null;
+            document.getElementById('backgroundInput').value = '';
+            document.getElementById('bgLabel').classList.remove('loaded');
+            document.getElementById('bgLabel').textContent = 'Выберите фон';
+            document.getElementById('bgPreview').classList.remove('visible');
+            updateCanvas();
+        }
+
+        function clearProduct(num) {
+            const key = `product${num}`;
+            images[key] = null;
+
+            document.getElementById(`product${num}Input`).value = '';
+            document.getElementById(`p${num}Label`).classList.remove('loaded');
+            document.getElementById(`p${num}Label`).textContent = 'Выберите фото';
+            document.getElementById(`p${num}Preview`).classList.remove('visible');
+
+            // Сбрасываем масштаб
+            document.getElementById(`p${num}Scale`).value = 100;
+            document.getElementById(`p${num}ScaleValue`).textContent = '100';
+
+            updateCanvas();
+        }
+
+        function resetAllSettings() {
+            // Сброс позиций
+            document.getElementById('textYOffset').value = 0;
+            document.getElementById('textXOffset').value = 0;
+            document.getElementById('imagesYOffset').value = 0;
+            document.getElementById('imagesXOffset').value = 0;
+            document.getElementById('imageScale').value = 100;
+
+            // Сброс размеров
+            document.getElementById('fontSize').value = 24;
+            document.getElementById('headerSize').value = 48;
+            document.getElementById('strokeWidth').value = 3;
+
+            // Сброс цветов
+            document.getElementById('textColor').value = '#ffffff';
+            document.getElementById('strokeColor').value = '#000000';
+            document.getElementById('backgroundColor').value = '#000000';
+
+            // Сброс смещений заголовка
+            document.getElementById('headerYOffset').value = 0;
+
+            // Обновление отображаемых значений
+            document.getElementById('textYValue').textContent = '0';
+            document.getElementById('textXValue').textContent = '0';
+            document.getElementById('imagesYValue').textContent = '0';
+            document.getElementById('imagesXValue').textContent = '0';
+            document.getElementById('imageScaleValue').textContent = '100';
+            document.getElementById('fontSizeValue').textContent = '24';
+            document.getElementById('headerSizeValue').textContent = '48';
+            document.getElementById('strokeValue').textContent = '3';
+            document.getElementById('headerYValue').textContent = '0';
+
+            // Сброс текстов на дефолтные
+            document.getElementById('headerText').value = 'PREMIUM AUDIO KIT';
+            document.getElementById('text1').value = 'Сабвуфер 12"\n300W RMS';
+            document.getElementById('text2').value = 'Усилитель 4ch\n4x100W';
+            document.getElementById('text3').value = 'Акустика 6.5"\nPeak 200W';
+
+            // Сброс цен
+            document.getElementById('price1').value = '$299';
+            document.getElementById('price2').value = '$499';
+            document.getElementById('price3').value = '$199';
+            document.getElementById('priceSize').value = 32;
+            document.getElementById('priceSizeValue').textContent = '32';
+            document.getElementById('priceYOffset').value = 0;
+            document.getElementById('priceXOffset').value = 0;
+            document.getElementById('priceYValue').textContent = '0';
+            document.getElementById('priceXValue').textContent = '0';
+
+            // Сброс примечания
+            document.getElementById('footerText').value = '*Гарантия 2 года. Доставка бесплатно.';
+            document.getElementById('footerSize').value = 18;
+            document.getElementById('footerSizeValue').textContent = '18';
+            document.getElementById('footerYOffset').value = 0;
+            document.getElementById('footerXOffset').value = 0;
+            document.getElementById('footerYValue').textContent = '0';
+            document.getElementById('footerXValue').textContent = '0';
+
+            // Сброс индивидуальных масштабов продуктов
+            document.getElementById('p1Scale').value = 100;
+            document.getElementById('p2Scale').value = 100;
+            document.getElementById('p3Scale').value = 100;
+            document.getElementById('p1ScaleValue').textContent = '100';
+            document.getElementById('p2ScaleValue').textContent = '100';
+            document.getElementById('p3ScaleValue').textContent = '100';
+
+            updateCanvas();
+        }
+
+        function updateCanvas() {
+            // Получаем цвет фона
+            const bgColor = document.getElementById('backgroundColor').value;
+
+            // Рисуем цветной фон
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Рисуем фоновое изображение поверх (если есть)
+            if (images.background) {
+                ctx.drawImage(images.background, 0, 0, canvas.width, canvas.height);
+            }
+
+            // Получаем смещения для картинок
+            const imagesYOffset = parseInt(document.getElementById('imagesYOffset').value);
+            const imagesXOffset = parseInt(document.getElementById('imagesXOffset').value);
+            const imageScale = parseInt(document.getElementById('imageScale').value) / 100;
+
+            // Рисуем продукты (компактно, 3 штуки в ряд)
+            const padding = canvas.width * 0.03; // Уменьшенный отступ
+            const totalWidth = canvas.width - (padding * 2);
+            const productWidth = (totalWidth / 3.3) * imageScale; // Применяем масштаб
+            const productHeight = (canvas.height * 0.4) * imageScale; // Применяем масштаб
+            const startY = canvas.height * 0.1 + imagesYOffset; // Добавляем смещение по Y
+            const spacing = (totalWidth - productWidth * 3) / 2;
+
+            // Позиции по X с учетом смещения
+            const x1 = padding + imagesXOffset;
+            const x2 = padding + productWidth + spacing + imagesXOffset;
+            const x3 = padding + productWidth * 2 + spacing * 2 + imagesXOffset;
+
+            // Получаем индивидуальные масштабы для каждого продукта
+            const p1Scale = parseInt(document.getElementById('p1Scale').value) / 100;
+            const p2Scale = parseInt(document.getElementById('p2Scale').value) / 100;
+            const p3Scale = parseInt(document.getElementById('p3Scale').value) / 100;
+
+            if (images.product1) {
+                drawProductImage(images.product1, x1, startY, productWidth * p1Scale, productHeight * p1Scale);
+            }
+            if (images.product2) {
+                drawProductImage(images.product2, x2, startY, productWidth * p2Scale, productHeight * p2Scale);
+            }
+            if (images.product3) {
+                drawProductImage(images.product3, x3, startY, productWidth * p3Scale, productHeight * p3Scale);
+            }
+
+            // Рисуем заголовок
+            const headerText = document.getElementById('headerText').value;
+            const headerSize = parseInt(document.getElementById('headerSize').value);
+            const headerYOffset = parseInt(document.getElementById('headerYOffset').value);
+            const textColor = document.getElementById('textColor').value;
+            const strokeWidth = parseInt(document.getElementById('strokeWidth').value);
+            const strokeColor = document.getElementById('strokeColor').value;
+
+            if (headerText.trim()) {
+                drawHeader(headerText, headerSize, headerYOffset, textColor, strokeWidth, strokeColor);
+            }
+
+            // Рисуем текст описаний
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            drawTexts(fontSize, textColor, strokeWidth, strokeColor, x1, x2, x3, productWidth, startY, productHeight);
+
+            // Рисуем цены
+            const priceSize = parseInt(document.getElementById('priceSize').value);
+            const priceYOffset = parseInt(document.getElementById('priceYOffset').value);
+            const priceXOffset = parseInt(document.getElementById('priceXOffset').value);
+            drawPrices(priceSize, textColor, strokeWidth, strokeColor, x1, x2, x3, productWidth, startY, productHeight, priceYOffset, priceXOffset);
+
+            // Рисуем примечание внизу
+            const footerText = document.getElementById('footerText').value;
+            const footerSize = parseInt(document.getElementById('footerSize').value);
+            const footerYOffset = parseInt(document.getElementById('footerYOffset').value);
+            const footerXOffset = parseInt(document.getElementById('footerXOffset').value);
+            if (footerText.trim()) {
+                drawFooter(footerText, footerSize, footerYOffset, footerXOffset, textColor, strokeWidth, strokeColor);
+            }
+        }
+
+        function drawProductImage(img, x, y, width, height) {
+            // Вписываем изображение целиком без обрезки (contain)
+            const imgRatio = img.width / img.height;
+            const targetRatio = width / height;
+
+            let drawWidth, drawHeight, offsetX, offsetY;
+
+            if (imgRatio > targetRatio) {
+                // Изображение шире - вписываем по ширине
+                drawWidth = width;
+                drawHeight = width / imgRatio;
+                offsetX = 0;
+                offsetY = (height - drawHeight) / 2;
+            } else {
+                // Изображение выше - вписываем по высоте
+                drawHeight = height;
+                drawWidth = height * imgRatio;
+                offsetX = (width - drawWidth) / 2;
+                offsetY = 0;
+            }
+
+            // Рисуем без clip - изображение полностью видно
+            ctx.drawImage(img, x + offsetX, y + offsetY, drawWidth, drawHeight);
+        }
+
+        function drawTexts(fontSize, color, strokeWidth, strokeColor, x1, x2, x3, productWidth, startY, productHeight) {
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+            const text3 = document.getElementById('text3').value;
+
+            const textYOffset = parseInt(document.getElementById('textYOffset').value);
+            const textXOffset = parseInt(document.getElementById('textXOffset').value);
+
+            const textStartY = startY + productHeight + fontSize * 0.8 + textYOffset;
+
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.lineWidth = strokeWidth;
+
+            // Рисуем текст под каждым продуктом с учетом смещения
+            drawTextWithStroke(text1, x1 + productWidth / 2 + textXOffset, textStartY, fontSize, color, strokeWidth, strokeColor);
+            drawTextWithStroke(text2, x2 + productWidth / 2 + textXOffset, textStartY, fontSize, color, strokeWidth, strokeColor);
+            drawTextWithStroke(text3, x3 + productWidth / 2 + textXOffset, textStartY, fontSize, color, strokeWidth, strokeColor);
+        }
+
+        function drawHeader(text, fontSize, yOffset, fillColor, strokeWidth, strokeColor) {
+            const headerY = canvas.height * 0.05 + fontSize + yOffset;
+
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+
+            const lines = text.split('\n');
+            lines.forEach((line, index) => {
+                const currentY = headerY + (index * fontSize * 1.2);
+
+                // Обводка
+                if (strokeWidth > 0) {
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = strokeWidth * 1.5; // Более толстая обводка для заголовка
+                    ctx.strokeText(line, canvas.width / 2, currentY);
+                }
+
+                // Заливка
+                ctx.fillStyle = fillColor;
+                ctx.fillText(line, canvas.width / 2, currentY);
+            });
+        }
+
+        function drawPrices(fontSize, color, strokeWidth, strokeColor, x1, x2, x3, productWidth, startY, productHeight, yOffset, xOffset) {
+            const price1 = document.getElementById('price1').value;
+            const price2 = document.getElementById('price2').value;
+            const price3 = document.getElementById('price3').value;
+
+            const textYOffset = parseInt(document.getElementById('textYOffset').value);
+            const priceStartY = startY + productHeight + fontSize * 0.8 + textYOffset + fontSize * 3 + yOffset;
+
+            ctx.font = `bold ${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.lineWidth = strokeWidth;
+
+            // Рисуем цены под текстами описаний
+            drawTextWithStroke(price1, x1 + productWidth / 2 + xOffset, priceStartY, fontSize, color, strokeWidth, strokeColor);
+            drawTextWithStroke(price2, x2 + productWidth / 2 + xOffset, priceStartY, fontSize, color, strokeWidth, strokeColor);
+            drawTextWithStroke(price3, x3 + productWidth / 2 + xOffset, priceStartY, fontSize, color, strokeWidth, strokeColor);
+        }
+
+        function drawFooter(text, fontSize, yOffset, xOffset, color, strokeWidth, strokeColor) {
+            const footerY = canvas.height - fontSize - 20 + yOffset;
+
+            ctx.font = `${fontSize}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+
+            const lines = text.split('\n');
+            lines.forEach((line, index) => {
+                const currentY = footerY + (index * fontSize * 1.2);
+
+                // Обводка
+                if (strokeWidth > 0) {
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = strokeWidth;
+                    ctx.strokeText(line, canvas.width / 2 + xOffset, currentY);
+                }
+
+                // Заливка
+                ctx.fillStyle = color;
+                ctx.fillText(line, canvas.width / 2 + xOffset, currentY);
+            });
+        }
+
+        function drawTextWithStroke(text, x, y, fontSize, fillColor, strokeWidth, strokeColor) {
+            const lines = text.split('\n');
+
+            lines.forEach((line, index) => {
+                const currentY = y + (index * fontSize * 1.2);
+
+                // Обводка
+                if (strokeWidth > 0) {
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = strokeWidth;
+                    ctx.strokeText(line, x, currentY);
+                }
+
+                // Заливка
+                ctx.fillStyle = fillColor;
+                ctx.fillText(line, x, currentY);
+            });
+        }
+
+        function downloadPoster() {
+            const link = document.createElement('a');
+            link.download = `acoustic-poster-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function clearAll() {
+            if (confirm('Вы уверены, что хотите очистить всё?')) {
+                images = {
+                    background: null,
+                    product1: null,
+                    product2: null,
+                    product3: null
+                };
+
+                document.querySelectorAll('input[type="file"]').forEach(input => input.value = '');
+                document.querySelectorAll('.file-input-label').forEach(label => {
+                    label.classList.remove('loaded');
+                });
+                document.getElementById('bgLabel').textContent = 'Выберите фон';
+                document.getElementById('p1Label').textContent = 'Продукт 1';
+                document.getElementById('p2Label').textContent = 'Продукт 2';
+                document.getElementById('p3Label').textContent = 'Продукт 3';
+
+                document.querySelectorAll('.preview-thumb').forEach(img => {
+                    img.classList.remove('visible');
+                });
+
+                updateCanvas();
+            }
+        }
+
+        // Инициализация
+        updateCanvas();
+    </script>
+</body>
+</html>

@@ -7,5 +7,10 @@
 # Keep this gitignore
 !.gitignore
 
+# Keep GitHub workflows
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
+
 # Local Netlify folder
 .netlify

@@ -279,8 +279,8 @@
                     </div>
                     <img id="p1Preview" class="preview-thumb">
                     <div class="slider-group" style="margin-top: 8px;">
-                        <label>Размер: <span class="slider-value" id="p1ScaleValue">100</span>%</label>
-                        <input type="range" id="p1Scale" min="30" max="200" value="100" step="5">
+                        <label>Размер: <input type="number" id="p1ScaleInput" min="30" max="200" value="100" style="width: 60px; padding: 4px; background: #3a3a3a; border: 1px solid #555; color: #fff; border-radius: 3px; text-align: center;">%</label>
+                        <input type="range" id="p1Scale" min="30" max="200" value="100" step="1">
                     </div>
                     <div class="slider-group">
                         <label>Позиция X: <span class="slider-value" id="p1XValue">0</span>px</label>
@@ -301,8 +301,8 @@
                     </div>
                     <img id="p2Preview" class="preview-thumb">
                     <div class="slider-group" style="margin-top: 8px;">
-                        <label>Размер: <span class="slider-value" id="p2ScaleValue">100</span>%</label>
-                        <input type="range" id="p2Scale" min="30" max="200" value="100" step="5">
+                        <label>Размер: <input type="number" id="p2ScaleInput" min="30" max="200" value="100" style="width: 60px; padding: 4px; background: #3a3a3a; border: 1px solid #555; color: #fff; border-radius: 3px; text-align: center;">%</label>
+                        <input type="range" id="p2Scale" min="30" max="200" value="100" step="1">
                     </div>
                     <div class="slider-group">
                         <label>Позиция X: <span class="slider-value" id="p2XValue">0</span>px</label>
@@ -323,8 +323,8 @@
                     </div>
                     <img id="p3Preview" class="preview-thumb">
                     <div class="slider-group" style="margin-top: 8px;">
-                        <label>Размер: <span class="slider-value" id="p3ScaleValue">100</span>%</label>
-                        <input type="range" id="p3Scale" min="30" max="200" value="100" step="5">
+                        <label>Размер: <input type="number" id="p3ScaleInput" min="30" max="200" value="100" style="width: 60px; padding: 4px; background: #3a3a3a; border: 1px solid #555; color: #fff; border-radius: 3px; text-align: center;">%</label>
+                        <input type="range" id="p3Scale" min="30" max="200" value="100" step="1">
                     </div>
                     <div class="slider-group">
                         <label>Позиция X: <span class="slider-value" id="p3XValue">0</span>px</label>
@@ -579,18 +579,39 @@ Peak 200W</textarea>
             updateCanvas();
         });
 
+        // Синхронизация слайдера и поля ввода для продукта 1
         document.getElementById('p1Scale').addEventListener('input', (e) => {
-            document.getElementById('p1ScaleValue').textContent = e.target.value;
+            document.getElementById('p1ScaleInput').value = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p1ScaleInput').addEventListener('input', (e) => {
+            const value = Math.max(30, Math.min(200, parseInt(e.target.value) || 100));
+            e.target.value = value;
+            document.getElementById('p1Scale').value = value;
             updateCanvas();
         });
 
+        // Синхронизация слайдера и поля ввода для продукта 2
         document.getElementById('p2Scale').addEventListener('input', (e) => {
-            document.getElementById('p2ScaleValue').textContent = e.target.value;
+            document.getElementById('p2ScaleInput').value = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p2ScaleInput').addEventListener('input', (e) => {
+            const value = Math.max(30, Math.min(200, parseInt(e.target.value) || 100));
+            e.target.value = value;
+            document.getElementById('p2Scale').value = value;
             updateCanvas();
         });
 
+        // Синхронизация слайдера и поля ввода для продукта 3
         document.getElementById('p3Scale').addEventListener('input', (e) => {
-            document.getElementById('p3ScaleValue').textContent = e.target.value;
+            document.getElementById('p3ScaleInput').value = e.target.value;
+            updateCanvas();
+        });
+        document.getElementById('p3ScaleInput').addEventListener('input', (e) => {
+            const value = Math.max(30, Math.min(200, parseInt(e.target.value) || 100));
+            e.target.value = value;
+            document.getElementById('p3Scale').value = value;
             updateCanvas();
         });
 
@@ -669,7 +690,7 @@ Peak 200W</textarea>
 
             // Сбрасываем масштаб и позиции
             document.getElementById(`p${num}Scale`).value = 100;
-            document.getElementById(`p${num}ScaleValue`).textContent = '100';
+            document.getElementById(`p${num}ScaleInput`).value = 100;
             document.getElementById(`p${num}XOffset`).value = 0;
             document.getElementById(`p${num}YOffset`).value = 0;
             document.getElementById(`p${num}XValue`).textContent = '0';
@@ -734,9 +755,9 @@ Peak 200W</textarea>
             document.getElementById('p1Scale').value = 100;
             document.getElementById('p2Scale').value = 100;
             document.getElementById('p3Scale').value = 100;
-            document.getElementById('p1ScaleValue').textContent = '100';
-            document.getElementById('p2ScaleValue').textContent = '100';
-            document.getElementById('p3ScaleValue').textContent = '100';
+            document.getElementById('p1ScaleInput').value = 100;
+            document.getElementById('p2ScaleInput').value = 100;
+            document.getElementById('p3ScaleInput').value = 100;
 
             document.getElementById('p1XOffset').value = 0;
             document.getElementById('p1YOffset').value = 0;
